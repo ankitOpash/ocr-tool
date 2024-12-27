@@ -5,3 +5,8 @@ opencv-python-headless
 pdf2image
 langdetect
 tensorflow
+opencv-python
+arabic-reshaper
+python-bidi
+PyPDF2
+pymupdf

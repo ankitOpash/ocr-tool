@@ -5,6 +5,7 @@ import numpy as np
 from langdetect import detect
 import arabic_reshaper
 from bidi.algorithm import get_display
+from app.image_preprocessor import ImagePreprocessor
 
 class OCREngine:
     def __init__(self):
