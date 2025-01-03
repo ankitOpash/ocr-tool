@@ -1,7 +1,6 @@
 fastapi
 uvicorn
 pytesseract
-opencv-python-headless
 pdf2image
 langdetect
 tensorflow
@@ -10,3 +9,11 @@ arabic-reshaper
 python-bidi
 PyPDF2
 pymupdf
+fastapi
+python-multipart
+opencv-python
+pillow
+easyocr
+spellchecker
+dotenv
+openai
