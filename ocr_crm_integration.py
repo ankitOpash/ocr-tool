@@ -4,6 +4,7 @@ import os
 import cv2
 # from services.preprocessing import preprocess_image
 from pdf2image import convert_from_path
+from PIL import Image
 import fitz  # PyMuPDF
 import easyocr
 import re
@@ -25,7 +26,7 @@ if not API_KEY:
     raise ValueError("Environment variable OPENAI_API_KEY is not set.")
 
 # Initialize EasyOCR Reader for English and Arabic
-reader = easyocr.Reader(["en", "ar"])
+reader = easyocr.Reader(["en", "ar"], gpu=True)
 
 
 #  **Preprocessing Function**
@@ -46,16 +47,43 @@ def preprocess_image(image_path: str) -> str:
     cv2.imwrite(temp_path, image)
     return temp_path
 
+
+
 #  **Text Extraction Function**
 def extract_text_from_image(image_path: str) -> str:
     """Extract text from an image using EasyOCR."""
     processed_path = preprocess_image(image_path)
-    results = reader.readtext(processed_path, detail=0, paragraph=True)
+    results = reader.readtext(processed_path, detail=0, paragraph=False)
     os.remove(processed_path)
     return "\n".join(results)
 
 
 # 📄 **PDF to Image Conversion**
+
+def pdf_to_images(pdf_path, output_folder):
+    pdf_document = fitz.open(pdf_path)
+    page_count = pdf_document.page_count
+    
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    
+    image_paths = []
+    
+    for page_number in range(page_count):
+        page = pdf_document[page_number]
+        pixmap = page.get_pixmap()
+        image = Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
+        image_path = f"{output_folder}/page_{page_number + 1}.jpg"
+        image.save(image_path)
+        image_paths.append(image_path)
+        print(f"Page {page_number + 1} Converted and saved as {image_path}")
+        
+    pdf_document.close()
+    
+    return image_paths, page_count
+
+
+
 def pdf_to_images_with_pymupdf(pdf_file: str, output_folder: str) -> List[str]:
     """Convert a PDF into a list of image file paths using PyMuPDF."""
     pdf_document = fitz.open(pdf_file)
@@ -95,7 +123,7 @@ def extract_with_ai(text: str) -> Dict[str, Dict[str, str]]:
     Text to process:
     """
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": text}
@@ -127,7 +155,7 @@ async def extract_text(files: List[UploadFile]) -> Dict[str, Union[str, Dict]]:
                 #     ]
                 # )
             ai_response = extract_with_ai(text)
-            print(text)
+            print("fdfdfdfdf",text)
             print("AI response:",ai_response)
             json_file_path = f"{os.path.splitext(file.filename)[0]}_ai_response.json"   
             with open(json_file_path, 'w') as json_file:
