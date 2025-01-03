@@ -131,7 +131,7 @@ def extract_with_ai(text: str) -> Dict[str, Dict[str, str]]:
     )
     return response.choices[0].message.content
 
-# 🚀 **API Route**
+#  **API Route**
 @app.post("/extract")
 async def extract_text(files: List[UploadFile]) -> Dict[str, Union[str, Dict]]:
     """Extract text and key-value pairs from uploaded PDFs or images."""
