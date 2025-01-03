@@ -4,5 +4,8 @@
 
 
 python -m venv venv
-source venv/bin/activate
+pip install -r requirements.txt
+venv\Scripts\activate
 uvicorn main:app --reload
+
+uvicorn ocr_crm_integration:app --reload
