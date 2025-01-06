@@ -17,3 +17,4 @@ easyocr
 spellchecker
 dotenv
 openai
+tensorflow

@@ -11,7 +11,7 @@ import re
 from tempfile import TemporaryDirectory
 from dotenv import load_dotenv
 from openai import OpenAI
-
+# import tensorflow as tf
 # from utils.file_utils import save_uploaded_file
 
 import json
@@ -39,6 +39,8 @@ reader = easyocr.Reader(["en", "ar"], gpu=True)
 #     processed_path = f"{os.path.splitext(image_path)[0]}_processed.png"
 #     cv2.imwrite(processed_path, edged)
 #     return processed_path
+
+# openCV
 def preprocess_image(image_path: str) -> str:
     """Preprocess the image for better OCR results."""
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -47,6 +49,8 @@ def preprocess_image(image_path: str) -> str:
     cv2.imwrite(temp_path, image)
     return temp_path
 
+
+#tensorflow
 
 
 #  **Text Extraction Function**
@@ -58,7 +62,7 @@ def extract_text_from_image(image_path: str) -> str:
     return "\n".join(results)
 
 
-# 📄 **PDF to Image Conversion**
+# **PDF to Image Conversion**
 
 def pdf_to_images(pdf_path, output_folder):
     pdf_document = fitz.open(pdf_path)
@@ -84,16 +88,45 @@ def pdf_to_images(pdf_path, output_folder):
 
 
 
-def pdf_to_images_with_pymupdf(pdf_file: str, output_folder: str) -> List[str]:
-    """Convert a PDF into a list of image file paths using PyMuPDF."""
+# def pdf_to_images_with_pymupdf(pdf_file: str, output_folder: str) -> List[str]:
+#     """Convert a PDF into a list of image file paths using PyMuPDF."""
+#     pdf_document = fitz.open(pdf_file)
+#     image_paths = []
+#     for page_num in range(len(pdf_document)):
+#         page = pdf_document.load_page(page_num)
+#         pix = page.get_pixmap()
+#         image_path = os.path.join(output_folder, f"page_{page_num + 1}.png")
+#         pix.save(image_path)
+#         image_paths.append(image_path)
+#     pdf_document.close()
+#     return image_paths
+
+
+def pdf_to_images_with_pymupdf(pdf_file: str, output_folder: str, zoom: float = 2.0) -> List[str]:
+    """
+    Convert a PDF into a list of high-quality image file paths using PyMuPDF.
+
+    Args:
+        pdf_file (str): Path to the PDF file.
+        output_folder (str): Directory to save the output images.
+        zoom (float): Zoom factor for increasing image resolution. Default is 2.0.
+
+    Returns:
+        List[str]: List of paths to the generated images.
+    """
     pdf_document = fitz.open(pdf_file)
     image_paths = []
+
+    # Use the zoom parameter to scale images (higher zoom = better quality)
+    matrix = fitz.Matrix(zoom, zoom)
+
     for page_num in range(len(pdf_document)):
         page = pdf_document.load_page(page_num)
-        pix = page.get_pixmap()
+        pix = page.get_pixmap(matrix=matrix, alpha=False)  # Set alpha=False for non-transparent background
         image_path = os.path.join(output_folder, f"page_{page_num + 1}.png")
         pix.save(image_path)
         image_paths.append(image_path)
+
     pdf_document.close()
     return image_paths
 
@@ -143,7 +176,7 @@ async def extract_text(files: List[UploadFile]) -> Dict[str, Union[str, Dict]]:
                 f.write(await file.read())
             
             if file.filename.endswith(".pdf"):
-                images = pdf_to_images_with_pymupdf(file_path, temp_dir)
+                images = pdf_to_images_with_pymupdf(file_path, temp_dir, zoom=2.5)  # Higher zoom for better quality
                 text = "\n".join(extract_text_from_image(img) for img in images)
             else:
                 text = extract_text_from_image(file_path)
